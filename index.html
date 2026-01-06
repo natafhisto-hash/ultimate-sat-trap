@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate SAT Trap: Information Black Hole</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-slate-900 text-white font-sans selection:bg-purple-500/30">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback } = React;
+
+        const App = () => {
+            const [n, setN] = useState(64);
+            const [algorithm, setAlgorithm] = useState('dpll');
+            const [step, setStep] = useState(0);
+            const [running, setRunning] = useState(false);
+            const [trapped, setTrapped] = useState(false);
+            const [trajectory, setTrajectory] = useState([]);
+
+            const algos = [
+                { id: 'dpll', name: 'DPLL', cat: 'Classical', desc: 'Backtracking gets lost in circular structure.' },
+                { id: 'cdcl', name: 'CDCL', cat: 'Classical', desc: 'Conflict clauses become indistinguishable from noise.' },
+                { id: 'kissat', name: 'Kissat', cat: 'Classical', desc: 'State-of-the-art heuristics fail on I_n instance.' },
+                { id: 'glucose', name: 'Glucose', cat: 'Classical', desc: 'LBD scores collapse as structure vanishes.' },
+                { id: 'cryptominisat', name: 'CryptoMiniSat', cat: 'Classical', desc: 'S-Box layers negate XOR-optimization.' },
+                { id: 'lingeling', name: 'Lingeling', cat: 'Classical', desc: 'Preprocessing is blind to the 3-layer coupling.' },
+                { id: 'walksat', name: 'WalkSAT', cat: 'Stochastic', desc: 'Local search trapped in flat entropy plateau.' },
+                { id: 'schoning', name: 'Schöning', cat: 'Stochastic', desc: 'Random walk probability decays exponentially.' },
+                { id: 'swor', name: 'SWOR', cat: 'Stochastic', desc: 'Sampling fails to capture non-local dependencies.' },
+                { id: 'gsat', name: 'GSAT', cat: 'Stochastic', desc: 'Greedy steps lead directly into the trap.' },
+                { id: 'probsat', name: 'ProbSAT', cat: 'Stochastic', desc: 'Probability distribution hits thermal equilibrium.' },
+                { id: 'survey', name: 'Survey Prop', cat: 'Stochastic', desc: 'Messages fail to converge on the horizon.' },
+                { id: 'grover', name: 'Grover', cat: 'Quantum', desc: 'S-Box destroys phase-kickback structure.' },
+                { id: 'qaoa', name: 'QAOA', cat: 'Quantum', desc: 'Barren plateaus prevent cost-function descent.' },
+                { id: 'vqe', name: 'VQE', cat: 'Quantum', desc: 'Ansatz becomes too shallow for circular coupling.' },
+                { id: 'qwalk', name: 'Quantum Walk', cat: 'Quantum', desc: 'Diffusion is blocked by the trap connectivity.' },
+                { id: 'shor', name: 'Shor-Inspired', cat: 'Quantum', desc: 'No periodicity found in the S-Box layers.' }
+            ];
+
+            const reset = () => {
+                setStep(0); setRunning(false); setTrapped(false); setTrajectory([]);
+            };
+
+            useEffect(() => {
+                let timer;
+                if (running && !trapped && step < n * 1.5) {
+                    timer = setTimeout(() => {
+                        setStep(s => s + 1);
+                        const currentH = n - (step * 0.5);
+                        setTrajectory(prev => [...prev, { x: step, y: currentH }]);
+                        if (step > n * 0.68) setTrapped(true);
+                    }, 40);
+                } else { setRunning(false); }
+                return () => clearTimeout(timer);
+            }, [running, step, trapped, n]);
+
+            return (
+                <div className="min-h-screen p-4 md:p-8 bg-slate-950 flex flex-col items-center justify-center">
+                    <div className="w-full max-w-5xl border border-slate-800 bg-slate-900/50 backdrop-blur-md rounded-3xl overflow-hidden shadow-2xl">
+                        <div className="p-8 border-b border-slate-800 flex flex-col md:flex-row justify-between items-center gap-6">
+                            <div>
+                                <h1 className="text-4xl font-black bg-gradient-to-r from-purple-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent">ULTIMATE SAT TRAP</h1>
+                                <p className="text-slate-500 text-xs font-mono uppercase tracking-widest mt-1">Information Black Hole & SNR Collapse</p>
+                            </div>
+                            <div className="flex gap-4">
+                                <button onClick={() => setRunning(!running)} className={`px-10 py-4 rounded-2xl font-black text-sm transition-all ${trapped ? 'bg-red-500/10 text-red-500 border border-red-500/50 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-500 text-white shadow-xl shadow-purple-500/20'}`} disabled={trapped}>
+                                    {running ? 'STOP SIMULATION' : 'LAUNCH ATTACK'}
+                                </button>
+                                <button onClick={reset} className="px-6 py-4 bg-slate-800 hover:bg-slate-700 rounded-2xl border border-slate-700 transition-all font-bold text-sm">RESET</button>
+                            </div>
+                        </div>
+
+                        <div className="p-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="lg:col-span-1 space-y-6">
+                                <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800">
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-4">Complexity (n = {n})</label>
+                                    <input type="range" min="16" max="256" step="16" value={n} onChange={e => {setN(parseInt(e.target.value)); reset();}} className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-purple-500" />
+                                </div>
+                                <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800">
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase block mb-2">Algorithm Selector</label>
+                                    <select value={algorithm} onChange={e => {setAlgorithm(e.target.value); reset();}} className="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-cyan-400 font-mono text-sm outline-none">
+                                        {['Classical', 'Stochastic', 'Quantum'].map(cat => (
+                                            <optgroup label={cat} key={cat} className="bg-slate-900 text-slate-500">
+                                                {algos.filter(a => a.cat === cat).map(a => (
+                                                    <option key={a.id} value={a.id} className="text-white">{a.name}</option>
+                                                ))}
+                                            </optgroup>
+                                        ))}
+                                    </select>
+                                    <p className="text-[10px] text-slate-500 mt-3 italic leading-relaxed">
+                                        {algos.find(a => a.id === algorithm)?.desc}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 text-center">
+                                    <div className="text-[10px] text-slate-500 uppercase mb-2">Entropy (H)</div>
+                                    <div className="text-3xl font-mono font-bold text-blue-400">{(n - (step * 0.45)).toFixed(1)}</div>
+                                </div>
+                                <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 text-center">
+                                    <div className="text-[10px] text-slate-500 uppercase mb-2">SNR Ratio</div>
+                                    <div className={`text-3xl font-mono font-bold ${trapped ? 'text-red-500' : 'text-green-400'}`}>{(1 / (1 + step * 0.12)).toFixed(4)}</div>
+                                </div>
+                                <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 text-center col-span-2 md:col-span-1">
+                                    <div className="text-[10px] text-slate-500 uppercase mb-2">Current Step</div>
+                                    <div className="text-3xl font-mono font-bold text-yellow-500">{step}</div>
+                                </div>
+                                
+                                <div className="bg-black/40 border border-slate-800 rounded-2xl p-6 col-span-2 md:col-span-3 h-48 relative overflow-hidden flex items-end">
+                                    <div className="absolute top-4 left-6 text-[10px] text-slate-600 font-bold uppercase tracking-widest">Phase Space Horizon</div>
+                                    <div className="w-full bg-gradient-to-t from-purple-500/10 to-transparent border-l border-b border-slate-700 relative h-full flex items-end">
+                                        <div className="w-full bg-purple-500/30 border-t border-purple-400/50 transition-all duration-300" style={{height: `${(step/(n*1.2))*100}%`}}></div>
+                                        <div className="absolute left-[68%] top-0 w-px h-full border-r border-dashed border-red-500/30">
+                                            <span className="absolute top-2 left-2 text-[8px] text-red-500/80 font-bold uppercase">Trap Threshold</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {trapped && (
+                            <div className="mx-8 mb-8 p-6 bg-red-500/10 border border-red-500/50 rounded-2xl text-center animate-pulse">
+                                <h2 className="text-red-500 font-black text-2xl mb-1 tracking-tighter uppercase italic">Signal Lost: Event Horizon Reached</h2>
+                                <p className="text-red-400/70 text-[10px] uppercase font-bold tracking-widest italic">{algorithm} is now trapped in the Information Black Hole.</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
